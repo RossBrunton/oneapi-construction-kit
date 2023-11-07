@@ -33,6 +33,7 @@
 #include <llvm/ADT/StringSwitch.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Passes/PassBuilder.h>
+#include <llvm/Support/CodeGen.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO/GlobalOpt.h>
 #include <llvm/Transforms/IPO/Inliner.h>
@@ -128,7 +129,7 @@ void addLLVMDefaultPerModulePipeline(ModulePassManager &PM, PassBuilder &PB,
 Result emitCodeGenFile(llvm::Module &M, TargetMachine *TM,
                        raw_pwrite_stream &ostream, bool create_assembly) {
   legacy::PassManager PM;
-  CodeGenFileType type = !create_assembly ? CGFT_ObjectFile : CGFT_AssemblyFile;
+  CodeGenFileType type = !create_assembly ? CodeGenFileType::ObjectFile : CodeGenFileType::AssemblyFile;
   if (TM->addPassesToEmitFile(PM, ostream, /*DwoOut*/ nullptr, type,
                               /*DisableVerify*/ false)) {
     return compiler::Result::FAILURE;

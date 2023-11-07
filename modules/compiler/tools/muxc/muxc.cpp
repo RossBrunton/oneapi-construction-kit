@@ -55,10 +55,10 @@ static cl::opt<bool> WriteTextual(
     cl::init(true));
 
 static cl::opt<CodeGenFileType> FileType(
-    "filetype", cl::init(CGFT_AssemblyFile), cl::desc("Choose a file type:"),
-    cl::values(clEnumValN(CGFT_AssemblyFile, "asm", "Emit a textual file"),
-               clEnumValN(CGFT_ObjectFile, "obj", "Emit a binary object file"),
-               clEnumValN(CGFT_Null, "null",
+    "filetype", cl::init(CodeGenFileType::AssemblyFile), cl::desc("Choose a file type:"),
+    cl::values(clEnumValN(CodeGenFileType::AssemblyFile, "asm", "Emit a textual file"),
+               clEnumValN(CodeGenFileType::ObjectFile, "obj", "Emit a binary object file"),
+               clEnumValN(CodeGenFileType::Null, "null",
                           "Emit nothing, for performance testing")));
 
 static cl::opt<int> DeviceIdx(
@@ -138,14 +138,14 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (FileType == CGFT_Null) {
+  if (FileType == CodeGenFileType::Null) {
     return 0;
   }
 
   // Open the output file.
   std::error_code EC;
   sys::fs::OpenFlags OpenFlags = sys::fs::OF_None;
-  if (FileType == CGFT_AssemblyFile) {
+  if (FileType == CodeGenFileType::AssemblyFile) {
     OpenFlags |= sys::fs::OF_Text;
   }
   auto Out = std::make_unique<ToolOutputFile>(OutputFilename, EC, OpenFlags);
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (FileType == CGFT_AssemblyFile) {
+  if (FileType == CodeGenFileType::AssemblyFile) {
     Out->os() << *M.get();
   } else {
     WriteBitcodeToFile(*M.get(), Out->os());

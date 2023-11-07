@@ -193,7 +193,7 @@ compiler::Result HostTarget::initWithBuiltins(
 
   llvm::orc::JITTargetMachineBuilder TMBuilder(triple);
   TMBuilder.setCPU(CPUName.str());
-  TMBuilder.setCodeGenOptLevel(llvm::CodeGenOpt::Aggressive);
+  TMBuilder.setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
   for (auto &Feature : FeatureMap) {
     TMBuilder.getFeatures().AddFeature(Feature.first(), Feature.second);
   }
