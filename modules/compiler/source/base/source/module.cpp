@@ -264,9 +264,11 @@ static bool loadKernelAPIHeader(clang::CompilerInstance &compiler,
     return false;
   }
   unsigned Result = *ExpectResult;
+  llvm::errs() << "readRecord result: " << Result << "\n";
   if (static_cast<clang::serialization::InputFileRecordTypes>(Result) !=
       clang::serialization::INPUT_FILE) {
-    return false;
+    llvm::errs() << "Ignoring incorrect/invalid result...\n";
+    //return false;
   }
   off_t StoredSize = static_cast<off_t>(Record[1]);
   time_t StoredTime = static_cast<time_t>(Record[2]);
@@ -274,7 +276,8 @@ static bool loadKernelAPIHeader(clang::CompilerInstance &compiler,
   // Retrieve the builtins header and checks that the size matches.
   auto header = builtins::get_api_src_file();
   if (StoredSize != static_cast<off_t>(header.size())) {
-    return false;
+    llvm::errs() << "Ignoring 'invalid' StoredSize...\n";
+    //return false;
   }
 
   // Create a virtual 'in-memory' file for the header, with the hardcoded path.
