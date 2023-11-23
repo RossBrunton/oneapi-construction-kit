@@ -80,4 +80,4 @@ set(LLVM_USE_CRT_RELEASEASSERT "${output}")
 set(LLVM_USE_CRT_RELEASE "${output}")
 
 # Include the LLVM cmake module to choose the correct CRT for our libraries
-include(ChooseMSVCCRT)
+#include(ChooseMSVCCRT)
