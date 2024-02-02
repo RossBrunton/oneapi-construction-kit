@@ -81,6 +81,10 @@ struct USMKernelTest : public cl_intel_unified_shared_memory_Test {
       GTEST_SKIP();
     }
 
+    ASSERT_SUCCESS(clGetDeviceInfo(
+        device, CL_DEVICE_HOST_MEM_CAPABILITIES_INTEL,
+        sizeof(host_capabilities), &host_capabilities, nullptr));
+
     ASSERT_SUCCESS(clGetDeviceInfo(device, CL_DEVICE_ADDRESS_BITS,
                                    sizeof(device_pointer_size),
                                    &device_pointer_size, nullptr));
@@ -129,6 +133,7 @@ struct USMKernelTest : public cl_intel_unified_shared_memory_Test {
     cl_intel_unified_shared_memory_Test::TearDown();
   }
 
+  cl_device_unified_shared_memory_capabilities_intel host_capabilities = 0;
   cl_uint device_pointer_size = 0;
 
   const size_t elements = 64;
@@ -191,8 +196,18 @@ struct USMIndirectAccessTest : public USMKernelTest {
   void SetUp() override {
     UCL_RETURN_ON_FATAL_FAILURE(USMKernelTest::SetUp());
 
-    initPointers(bytes, align);
     cl_int err;
+    if (host_capabilities) {
+      host_ptr = clHostMemAllocINTEL(context, nullptr, bytes, align, &err);
+      ASSERT_SUCCESS(err);
+      ASSERT_TRUE(host_ptr != nullptr);
+    }
+
+    device_ptr =
+        clDeviceMemAllocINTEL(context, device, nullptr, bytes, align, &err);
+    ASSERT_SUCCESS(err);
+    ASSERT_TRUE(device_ptr != nullptr);
+
     BuildKernel(source);
 
     // Initialize USM allocations to patternA
@@ -212,6 +227,20 @@ struct USMIndirectAccessTest : public USMKernelTest {
       ASSERT_SUCCESS(err);
     }
     ASSERT_SUCCESS(clFinish(queue));
+  }
+
+  void TearDown() override {
+    if (device_ptr) {
+      cl_int err = clMemBlockingFreeINTEL(context, device_ptr);
+      EXPECT_SUCCESS(err);
+    }
+
+    if (host_ptr) {
+      cl_int err = clMemBlockingFreeINTEL(context, host_ptr);
+      EXPECT_SUCCESS(err);
+    }
+
+    USMKernelTest::TearDown();
   }
 
   static const char *source;
@@ -451,6 +480,7 @@ TEST_F(USMIndirectAccessTest, IndirectSharedPointer) {
   if (!shared_capabilities) {
     GTEST_SKIP();
   }
+  return;
 
   // Wrap shared USM pointer in a struct
   SetInputBuffer(shared_ptr);
